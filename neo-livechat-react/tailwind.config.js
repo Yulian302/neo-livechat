@@ -1,9 +1,11 @@
 /** @type {import('tailwindcss').Config} */
 module.exports = {
-  content: [],
-  theme: {
-    extend: {},
-  },
-  plugins: [],
+	content: ["./src/**/*.{js,ts,jsx,tsx,html}"],
+	theme: {
+		extend: {},
+		backgroundImage: {
+			"default-chat": "url('/img/default.jpg')",
+		},
+	},
+	plugins: [],
 }
-
