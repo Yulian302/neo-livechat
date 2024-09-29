@@ -25,8 +25,8 @@ function App() {
 		const user_id = Math.floor(Math.random() * (1000000 - 0) + 0)
 		setUserId(user_id)
 		setUsername(`User${user_id}`)
-		const ws = new WebSocket(`ws://localhost:8000/ws/${user_id}`)
-		// const ws = new WebSocket(`wss://neo-livechat.onrender.com/ws/${user_id}`)
+		// const ws = new WebSocket(`ws://localhost:8000/ws/${user_id}`)
+		const ws = new WebSocket(`wss://neo-livechat.onrender.com/ws/${user_id}`)
 		setSocket(ws)
 
 		ws.onmessage = (event) => {
