@@ -1,5 +1,5 @@
 from pydantic import BaseModel, Field
-from typing import Literal, List, Union
+from typing import Literal, Union, List
 from datetime import datetime, timezone
 
 
@@ -8,14 +8,13 @@ from datetime import datetime, timezone
 class MessageData(BaseModel):
     sender_id: int
     content: str
+    created_at: str = Field(
+        default_factory=lambda: datetime.now(timezone.utc).strftime('%Y-%m-%dT%H:%M:%SZ'))
 
 
 class ActiveUsersData(BaseModel):
     active_users: int
 
-
-class HistoryMessageData(BaseModel):
-    messages: List[MessageData]
 
 # ws types
 
@@ -23,13 +22,15 @@ class HistoryMessageData(BaseModel):
 class UserMessage(BaseModel):
     type: Literal["user_message"]
     data: MessageData
-    created_at: str = Field(
-        default_factory=lambda: datetime.now(timezone.utc).strftime('%Y-%m-%dT%H:%M:%SZ'))
 
 
 class ActiveUsersMessage(BaseModel):
     type: Literal["active_users_update"]
     data: ActiveUsersData
+
+
+class HistoryMessageData(BaseModel):
+    messages: List[UserMessage]
 
 
 class HistoryMessage(BaseModel):
