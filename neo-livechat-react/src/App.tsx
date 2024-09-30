@@ -1,20 +1,21 @@
-import {
-	HtmlHTMLAttributes,
-	RefObject,
-	useEffect,
-	useRef,
-	useState,
-} from "react"
+import { RefObject, useEffect, useRef, useState } from "react"
 
 import { BsEmojiSmile } from "react-icons/bs"
 import { GrStatusGoodSmall } from "react-icons/gr"
 import { TbSend2 } from "react-icons/tb"
 import "./App.css"
 import MessageWindow from "./components/messages/MessageWindow"
+import clsx from "clsx"
+import EmojiPicker from "emoji-picker-react"
 
 function App() {
-	const [username, setUsername] = useState("")
-	const [userId, setUserId] = useState<number>()
+	const MAX_INPUT_CHARS = 500
+	const [charCounter, setCharCounter] = useState(0)
+	const [username, setUsername] = useState<string>()
+	const [isEmojiPickerVisible, setIsEmojiPickerVisible] = useState(false)
+	const [userId, setUserId] = useState<number>(
+		Number(localStorage.getItem("userId"))
+	)
 	const [message, setMessage] = useState<string>("")
 	const [activeUsers, setActiveUsers] = useState<number>()
 	const [socket, setSocket] = useState<WebSocket | null>(null)
@@ -22,11 +23,13 @@ function App() {
 	const chatWrapperRef = useRef(null)
 
 	useEffect(() => {
-		const user_id = Math.floor(Math.random() * (1000000 - 0) + 0)
-		setUserId(user_id)
-		setUsername(`User${user_id}`)
-		// const ws = new WebSocket(`ws://localhost:8000/ws/${user_id}`)
-		const ws = new WebSocket(`wss://neo-livechat.onrender.com/ws/${user_id}`)
+		if (!userId) {
+			const user_id = Math.floor(Math.random() * (1000000 - 0) + 0)
+			setUserId(user_id)
+			localStorage.setItem("userId", String(user_id))
+		}
+		setUsername(`User${userId}`)
+		const ws = new WebSocket(`wss://neo-livechat.onrender.com/ws/${userId}`)
 		setSocket(ws)
 
 		ws.onmessage = (event) => {
@@ -51,7 +54,7 @@ function App() {
 		return () => {
 			ws.close()
 		}
-	}, [])
+	}, [userId])
 
 	useEffect(() => {
 		if (chatWrapperRef.current) {
@@ -85,10 +88,11 @@ function App() {
 			)
 			addMyMessage(message)
 			setMessage("")
+			setCharCounter(0)
 		}
 	}
 	return (
-		<div className="flex flex-col justify-around h-screen gap-4">
+		<div className="flex flex-col justify-start items-center h-screen">
 			<div className="text-center">
 				<p className="font-bold text-5xl">Live Reactive Chat</p>
 				<div className="flex justify-center">
@@ -97,12 +101,12 @@ function App() {
 						<span>Active users: {activeUsers}</span>
 					</div>
 				</div>
-				<p className="text-3xl mt-4">
+				<p className="text-3xl my-4">
 					Welcome, <span className="font-semibold">{username}</span>
 				</p>
 			</div>
-			<div className="flex-1 flex justify-center items-start overflow-y-auto">
-				<div className="w-1/2 h-full min-w-[600px]">
+			<div className="w-full flex-1 flex justify-center items-start overflow-y-auto">
+				<div className="sm:w-1/2 max-sm:w-full h-full sm:min-w-[600px]">
 					<div
 						className="h-full bg-default-chat rounded-md p-6 border-gray-500 border-x-2 border-t-2 overflow-y-auto"
 						ref={chatWrapperRef}
@@ -112,30 +116,71 @@ function App() {
 							<ul className="flex flex-col gap-4">
 								{chatMessages.map((msg: UserMessage, id: number) => (
 									<li key={id}>
-										<MessageWindow messageData={msg} user_id={userId!} />
+										<div id="messageWrapper">
+											<MessageWindow
+												messageData={msg}
+												isMe={userId === msg.sender_id}
+											/>
+										</div>
 									</li>
 								))}
 							</ul>
 						</div>
 					</div>
-					<div className="relative bottom-0 flex justify-start items-center h-12 w-full bg-gray-400 rounded-xl">
-						<BsEmojiSmile size={25} className="mx-4" />
-						<form
-							onSubmit={handleSendMessage}
-							className="flex items-center flex-1"
-						>
-							<input
-								type="text"
-								placeholder="Send"
-								className="px-2 rounded-xl h-[80%] w-full"
-								value={message}
-								onChange={(e) => setMessage(e.target.value)}
-							/>
-							<button type="submit">
-								<TbSend2 size={25} className="mx-4" />
-							</button>
-						</form>
+				</div>
+			</div>
+			<div className="sm:w-1/2 max-sm:w-full sm:min-w-[600px]">
+				<div
+					id="chatInput"
+					className="relative bottom-0 flex justify-start items-center h-12 bg-gray-400 rounded-xl"
+				>
+					<div className="relative inline-block">
+						<BsEmojiSmile
+							size={25}
+							className="mx-4 hover:text-white cursor-pointer"
+							onClick={() => {
+								setIsEmojiPickerVisible((prev) => !prev)
+							}}
+						/>
+						{isEmojiPickerVisible && (
+							<div
+								id="emojiPicker"
+								className="absolute -translate-x-full -translate-y-full"
+							>
+								<EmojiPicker
+									onEmojiClick={(e) => {
+										setMessage((prevMsg) => prevMsg + e.emoji)
+									}}
+								/>
+							</div>
+						)}
 					</div>
+					<form
+						onSubmit={handleSendMessage}
+						className="flex items-center flex-1"
+					>
+						<input
+							type="text"
+							placeholder="Enter message..."
+							className="px-2 rounded-xl h-[80%] w-full"
+							value={message}
+							onChange={(e) => {
+								setMessage(e.target.value)
+								setCharCounter(e.target.value.length)
+							}}
+							maxLength={MAX_INPUT_CHARS}
+						/>
+						<span
+							className={clsx("px-2", {
+								"text-red-700": charCounter === MAX_INPUT_CHARS,
+							})}
+						>
+							{charCounter}/{MAX_INPUT_CHARS}
+						</span>
+						<button type="submit">
+							<TbSend2 size={25} className="mx-2 hover:text-white" />
+						</button>
+					</form>
 				</div>
 			</div>
 		</div>
