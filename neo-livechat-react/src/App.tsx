@@ -30,6 +30,7 @@ function App() {
 		}
 		setUsername(`User${userId}`)
 		const ws = new WebSocket(`wss://neo-livechat.onrender.com/ws/${userId}`)
+		// const ws = new WebSocket(`ws://localhost:8000/ws/${userId}`)
 		setSocket(ws)
 
 		ws.onmessage = (event) => {
@@ -91,6 +92,23 @@ function App() {
 			setCharCounter(0)
 		}
 	}
+
+	const debounceFunc = (func: Function, interval: number) => {
+		let timeout: any // Timeout
+		return function (...args: any[]) {
+			clearTimeout(timeout)
+			timeout = setTimeout(() => func.apply(null, args), interval)
+		}
+	}
+	const handleOnEmojiPanelOpen = debounceFunc(() => {
+		setIsEmojiPickerVisible((prev) => !prev)
+	}, 200)
+
+	const handleOnEmojiClick = (e: any) => {
+		setMessage((prevMsg) => prevMsg + e.emoji)
+		setCharCounter((prev) => prev + 1)
+	}
+
 	return (
 		<div className="flex flex-col justify-start items-center h-screen">
 			<div className="text-center">
@@ -139,7 +157,7 @@ function App() {
 							size={25}
 							className="mx-4 hover:text-white cursor-pointer"
 							onClick={() => {
-								setIsEmojiPickerVisible((prev) => !prev)
+								handleOnEmojiPanelOpen()
 							}}
 						/>
 						{isEmojiPickerVisible && (
@@ -149,7 +167,7 @@ function App() {
 							>
 								<EmojiPicker
 									onEmojiClick={(e) => {
-										setMessage((prevMsg) => prevMsg + e.emoji)
+										handleOnEmojiClick(e)
 									}}
 								/>
 							</div>
@@ -166,7 +184,7 @@ function App() {
 							value={message}
 							onChange={(e) => {
 								setMessage(e.target.value)
-								setCharCounter(e.target.value.length)
+								setCharCounter(Array.from(e.target.value).length)
 							}}
 							maxLength={MAX_INPUT_CHARS}
 						/>
