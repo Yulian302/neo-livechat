@@ -29,8 +29,8 @@ function App() {
 			localStorage.setItem("userId", String(user_id))
 		}
 		setUsername(`User${userId}`)
-		const ws = new WebSocket(`wss://neo-livechat.onrender.com/ws/${userId}`)
-		// const ws = new WebSocket(`ws://localhost:8000/ws/${userId}`)
+		// const ws = new WebSocket(`wss://neo-livechat.onrender.com/ws/${userId}`)
+		const ws = new WebSocket(`ws://localhost:8000/ws/${userId}`)
 		setSocket(ws)
 
 		ws.onmessage = (event) => {
