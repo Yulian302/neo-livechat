@@ -3,7 +3,7 @@
  A Reactive live chat application that connects random users for real-time communication. This project demonstrates the use of the WebSocket protocol to enable bidirectional communication between clients and the server. Built using React.js on the front end and FastAPI on the back end, this example illustrates how WebSockets can be implemented to handle real-time chat functionality, ensuring seamless communication between users.
 </div>
 
-![Project preview](https://neo-portfolio-bucket.s3.eu-north-1.amazonaws.com/neo-livechat-min.jpg)
+![Project preview](https://neo-portfolio-bucket.s3.eu-north-1.amazonaws.com/neo-livechat.min.jpg)
 
 
 ### Links
